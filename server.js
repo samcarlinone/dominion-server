@@ -1,6 +1,8 @@
 // Load the TCP Library
 net = require('net');
 
+var port = process.env.$PORT || 8080;
+
 // Keep track of the chat clients
 var clients = [];
 
@@ -12,8 +14,6 @@ net.createServer(function (socket) {
 
   // Put this new client in the list
   clients.push(socket);
-
-  var port = process.env.$PORT || 8080;
 
   // Send a nice welcome message and announce
   socket.write("Welcome " + socket.name + "\n");
