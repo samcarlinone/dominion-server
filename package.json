@@ -1,4 +1,20 @@
-"scripts": {
-  "start": "node server.js"
-},
-"main": "server.js"
+{
+  "name": "dominion-server",
+  "version": "1.0.0",
+  "description": "Dominion game server",
+  "main": "server.js",
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samcarlinone/dominion-server.git"
+  },
+  "author": "Sam Carlin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/samcarlinone/dominion-server/issues"
+  },
+  "homepage": "https://github.com/samcarlinone/dominion-server#readme"
+}
