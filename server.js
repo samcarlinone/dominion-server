@@ -4,6 +4,11 @@ net = require('net');
 // Keep track of the chat clients
 var clients = [];
 
+
+//OPENSHIFT STUFF
+var server_port = process.env.OPENSHIFT_NODEJS_PORT || 8080;
+var server_ip_address = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
+
 // Start a TCP Server
 net.createServer(function (socket) {
 
@@ -45,7 +50,7 @@ net.createServer(function (socket) {
     process.stdout.write(message)
   }
 
-}).listen(5000);
+}).listen(server_port);
 
 // Put a friendly message on the terminal of the server.
 console.log("Chat server running at port 5000\n");
