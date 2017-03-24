@@ -51,4 +51,4 @@ net.createServer(function (socket) {
 
 // Put a friendly message on the terminal of the server.
 console.log("Chat server running\n");
-console.log("Port (||8080): "+process.env.$PORT);
+console.log("Port (||8080): "+process.env.PORT);
