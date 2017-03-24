@@ -1,7 +1,7 @@
 // Load the TCP Library
 net = require('net');
 
-var port = process.env.$PORT || 8080;
+var port = process.env.PORT || 8080;
 
 // Keep track of the chat clients
 var clients = [];
