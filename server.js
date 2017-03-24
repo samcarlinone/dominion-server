@@ -13,6 +13,8 @@ net.createServer(function (socket) {
   // Put this new client in the list
   clients.push(socket);
 
+  var port = process.env.$PORT || 8080;
+
   // Send a nice welcome message and announce
   socket.write("Welcome " + socket.name + "\n");
   broadcast(socket.name + " joined the chat\n", socket);
@@ -45,7 +47,8 @@ net.createServer(function (socket) {
     process.stdout.write(message)
   }
 
-}).listen(8080);
+}).listen(port);
 
 // Put a friendly message on the terminal of the server.
-console.log("Chat server running at port 8080\n");
+console.log("Chat server running\n");
+console.log("Port (||8080): "+process.env.$PORT);
