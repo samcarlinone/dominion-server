@@ -1,14 +1,18 @@
 // Load the TCP Library
 net = require('net');
 
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || 80;
+var app_port = 443;
 
 // Keep track of the chat clients
 var clients = [];
 
+net.createServer(function (socket) {
+  socket.write("Welcome " + socket.name + "\n");
+}).listen(port);
+
 // Start a TCP Server
 net.createServer(function (socket) {
-
   // Identify this client
   socket.name = socket.remoteAddress + ":" + socket.remotePort
 
@@ -47,8 +51,8 @@ net.createServer(function (socket) {
     process.stdout.write(message)
   }
 
-}).listen(port);
+}).listen(app_port);
 
 // Put a friendly message on the terminal of the server.
 console.log("Chat server running\n");
-console.log("Port (||8080): "+process.env.PORT);
+console.log("Ports: "+port+":"+app_port);
