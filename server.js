@@ -1,58 +1,43 @@
-// Load the TCP Library
-net = require('net');
+//Lets require/import the HTTP module
+const http = require('http');
+const url = require('url');
+const chat = require('./chat');
 
-var port = process.env.PORT || 80;
-var app_port = 443;
+//Lets define a port we want to listen to
+const PORT = process.env.PORT || 80;
 
-// Keep track of the chat clients
-var clients = [];
+console.log(chat);
 
-net.createServer(function (socket) {
-  socket.write("Welcome " + socket.name + "\n");
-}).listen(port);
-
-// Start a TCP Server
-net.createServer(function (socket) {
-  // Identify this client
-  socket.name = socket.remoteAddress + ":" + socket.remotePort
-
-  // Put this new client in the list
-  clients.push(socket);
-
-  // Send a nice welcome message and announce
-  socket.write("Welcome " + socket.name + "\n");
-  broadcast(socket.name + " joined the chat\n", socket);
-
-  // Handle incoming messages from clients.
-  socket.on('data', function (data) {
-    broadcast(socket.name + "> " + data, socket);
+//We need a function which handles requests and send response
+function handleRequest(request, response){
+  request.on('error', function(err) {
+    console.error(err);
+    response.statusCode = 400;
+    response.end();
+  });
+  response.on('error', function(err) {
+    console.error(err);
   });
 
-  // Remove the client from the list when it leaves
-  socket.on('end', function () {
-    clients.splice(clients.indexOf(socket), 1);
-    broadcast(socket.name + " left the chat.\n");
-  });
+  response.statusCode = 200;
 
-  //Handle disconnect
-  socket.on("error", (err) => {
-    clients.splice(clients.indexOf(socket), 1);
-    broadcast(socket.name + " left the chat.\n");
-  });
+  var in_url = url.parse(request.url, true);
 
-  // Send a message to all clients
-  function broadcast(message, sender) {
-    clients.forEach(function (client) {
-      // Don't want to send it to sender
-      if (client === sender) return;
-      client.write(message);
-    });
-    // Log it to the server output too
-    process.stdout.write(message)
+  try {
+    var data = JSON.parse(in_url.query.data);
+  } catch(e) {
+    response.end("<html><body>Cogito ergo sum.</body></html>");
+    return;
   }
 
-}).listen(app_port);
+  chat.process(data, response);
+}
 
-// Put a friendly message on the terminal of the server.
-console.log("Chat server running\n");
-console.log("Ports: "+port+":"+app_port);
+//Create a server
+var server = http.createServer(handleRequest);
+
+//Lets start our server
+server.listen(PORT, function(){
+    //Callback triggered when server is successfully listening. Hurray!
+    console.log("Server listening on: ", PORT);
+});
