@@ -1,12 +1,10 @@
 //Lets require/import the HTTP module
 const http = require('http');
 const url = require('url');
-const chat = require('./chat');
+const game = require('./game');
 
 //Lets define a port we want to listen to
 const PORT = process.env.PORT || 80;
-
-console.log(chat);
 
 //We need a function which handles requests and send response
 function handleRequest(request, response){
@@ -30,7 +28,7 @@ function handleRequest(request, response){
     return;
   }
 
-  chat.process(data, response);
+  game.process(data, response);
 }
 
 //Create a server
