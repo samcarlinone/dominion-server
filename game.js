@@ -27,7 +27,7 @@ class Game {
   process(data, response) {
     switch(data.type) {
       case "connect":
-        if(this.validateName(data.name)) {
+        if(this.getUser(data.name) === undefined) {
           this.respond({type:"name_result", result:"valid"}, response);
           this.users.push(new User(data.name));
         } else {
@@ -35,6 +35,21 @@ class Game {
         }
 
         break;
+
+      case "ping":
+        var user = this.getUser(data.name);
+
+        if(user === undefined) {
+          this.respond({type:"disconnected"}, response);
+        } else {
+          this.respond(user.pendingMessages, response);
+          user.pendingMessages = [];
+          user.lastTime = new Date().getTime();
+        }
+        break;
+
+      default:
+        this.respond({type:"error"}, response);
     }
   }
 
@@ -42,15 +57,15 @@ class Game {
     response.end(JSON.stringify(msg));
   }
 
-  validateName(name) {
+  getUser(name) {
     if(this.users.length) {
       for(var i=0; i<this.users.length; i++) {
         if(this.users[i].name === name)
-          return false;
+          return this.users[i];
       }
     }
 
-    return true;
+    return undefined;
   }
 }
 
