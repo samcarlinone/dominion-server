@@ -18,6 +18,9 @@ class Game {
 
     for(var i=0; i<this.users.length; i++) {
       if(this.users[i].disconnected || (!this.users[i].inRoom && (time-this.users[i].lastTime > 3000))) {
+        //Testing
+        this.broadcastAll({type: "message", name: "SYS", msg: "User: "+this.users[i].name+" left"});
+        //End Testing
         this.users.splice(i, 1);
         i--;
       }
@@ -30,6 +33,9 @@ class Game {
         if(this.getUser(data.name) === undefined) {
           this.respond({type:"name_result", result:"valid"}, response);
           this.users.push(new User(data.name));
+
+          //Testing
+          this.broadcastAll({type: "message", name: "SYS", msg: "User: "+data.name+" joined"});
         } else {
           this.respond({type:"name_result", result:"invalid"}, response);
         }
@@ -48,8 +54,19 @@ class Game {
         }
         break;
 
+      case "broadcast":
+        this.broadcastAll({type: "message", name: data.name, msg: data.msg});
+        this.respond({type:"confirm"}, response);
+        break;
+
       default:
         this.respond({type:"error"}, response);
+    }
+  }
+
+  broadcastAll(msg) {
+    for(var i=0; i<this.users.length; i++) {
+      this.users[i].pendingMessages.push(msg);
     }
   }
 
