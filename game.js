@@ -3,7 +3,7 @@ const Room = require('./room.js');
 
 class Game {
   constructor() {
-    this.rooms = [new Room()];
+    this.rooms = [];
     this.users = [];
 
     this.interval = setInterval(() => { this.removeDisconnected(); }, 3500);
@@ -12,6 +12,10 @@ class Game {
   removeDisconnected() {
     for(var i=0; i<this.rooms.length; i++) {
       this.rooms[i].checkDisconnected();
+      if(this.rooms[i].users.length === 0) {
+        this.rooms.splice(i, 1);
+        i--;
+      }
     }
 
     var time = new Date().getTime();
@@ -33,13 +37,26 @@ class Game {
         if(this.getUser(data.name) === undefined) {
           this.respond({type:"name_result", result:"valid"}, response);
           this.users.push(new User(data.name));
-
-          //Testing
-          this.broadcastAll({type: "message", name: "SYS", msg: "User: "+data.name+" joined"});
         } else {
           this.respond({type:"name_result", result:"invalid"}, response);
         }
 
+        break;
+
+      case "create":
+        var room = new Room(data.room_name, data.name);
+        var user = this.getUser(data.name);
+
+        if(user === undefined) {
+          this.respond({type:"disconnected"}, response);
+          break;
+        }
+
+        room.addUser(user);
+        this.rooms.push(room);
+
+        this.respond({type:"accepted"}, response);
+        console.log("Room Created");
         break;
 
       case "ping":
@@ -48,9 +65,22 @@ class Game {
         if(user === undefined) {
           this.respond({type:"disconnected"}, response);
         } else {
-          this.respond(user.pendingMessages, response);
-          user.pendingMessages = [];
           user.lastTime = new Date().getTime();
+
+          if(user.inRoom) {
+            this.respond(user.pendingMessages, response);
+            user.pendingMessages = [];
+          } else {
+            var room_list = "";
+
+            if(this.rooms.length > 0) {
+              for(var i=0; i<this.rooms.length; i++) {
+                room_list += `Lobby: ${this.rooms[i].name} Host: ${this.rooms[i].host} Players: (${this.rooms[i].users.length}/4),`;
+              }
+            }
+
+            this.respond({type:"room_list", room_list:room_list}, response);
+          }
         }
         break;
 
