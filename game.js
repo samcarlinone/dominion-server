@@ -11,7 +11,13 @@ class Game {
 
   removeDisconnected() {
     for(var i=0; i<this.rooms.length; i++) {
+      if(this.rooms[i].hasShutdown) {
+        this.rooms.splice(i, 1);
+        i--;
+      }
+
       this.rooms[i].checkDisconnected();
+
       if(this.rooms[i].users.length === 0) {
         this.rooms.splice(i, 1);
         i--;
@@ -56,7 +62,25 @@ class Game {
         this.rooms.push(room);
 
         this.respond({type:"accepted"}, response);
-        console.log("Room Created");
+        break;
+
+      case "join":
+        var user = this.getUser(data.name);
+
+        if(user === undefined) {
+          this.respond({type:"disconnected"}, response);
+          break;
+        }
+
+        var room = this.getRoom(data.room_name, data.room_host);
+
+        if(room === undefined || room.users.length === 4) {
+          this.respond({type: "rejected"}, response);
+          break;
+        }
+
+        room.addUser(user);
+        this.respond({type: "accepted"}, response);
         break;
 
       case "ping":
@@ -71,15 +95,20 @@ class Game {
             this.respond(user.pendingMessages, response);
             user.pendingMessages = [];
           } else {
-            var room_list = "";
+            if(user.roomShutdown) {
+              this.respond({type:"room_shutdown"}, response);
+              user.roomShutdown = false;
+            } else {
+              var room_list = "";
 
-            if(this.rooms.length > 0) {
-              for(var i=0; i<this.rooms.length; i++) {
-                room_list += `Lobby: ${this.rooms[i].name} Host: ${this.rooms[i].host} Players: (${this.rooms[i].users.length}/4),`;
+              if(this.rooms.length > 0) {
+                for(var i=0; i<this.rooms.length; i++) {
+                  room_list += `${this.rooms[i].name} ${this.rooms[i].host} (${this.rooms[i].users.length}/4),`;
+                }
               }
-            }
 
-            this.respond({type:"room_list", room_list:room_list}, response);
+              this.respond({type:"room_list", room_list:room_list}, response);
+            }
           }
         }
         break;
@@ -109,6 +138,18 @@ class Game {
       for(var i=0; i<this.users.length; i++) {
         if(this.users[i].name === name)
           return this.users[i];
+      }
+    }
+
+    return undefined;
+  }
+
+  getRoom(name, host) {
+    if(this.rooms.length) {
+      for(var i=0; i<this.rooms.length; i++) {
+        if(this.rooms[i].name == name && this.rooms[i].host === host) {
+          return this.rooms[i];
+        }
       }
     }
 
