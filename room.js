@@ -1,6 +1,8 @@
 class Room {
-  constructor() {
+  constructor(name, host) {
     this.users = [];
+    this.name = name;
+    this.host = host;
   }
 
   checkDisconnected() {
@@ -22,6 +24,7 @@ class Room {
 
   addUser(user) {
     this.users.push(user);
+    user.inRoom = true;
   }
 
   getUser(name) {
