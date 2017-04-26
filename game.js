@@ -83,6 +83,23 @@ class Game {
         this.respond({type: "accepted"}, response);
         break;
 
+      case "leave":
+        var user = this.getUser(data.name);
+
+        if(user === undefined) {
+          this.respond({type:"disconnected"}, response);
+          break;
+        }
+
+        if(user.inRoom !== false) {
+          user.inRoom.disconnectUser(user);
+          this.respond({type:"accepted"}, response);
+          break;
+        }
+
+        this.respond({type:"rejected"}, response);
+        break;
+
       case "ping":
         var user = this.getUser(data.name);
 
