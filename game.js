@@ -38,25 +38,26 @@ class Game {
   }
 
   process(data, response) {
+    var user = this.getUser(data.name);
+
+    if(user === undefined) {
+      if(data.type === "connect") {
+        this.respond({type:"name_result", result:"valid"}, response);
+        this.users.push(new User(data.name));
+        return;
+      } else {
+        this.respond({type:"disconnected"}, response);
+        return;
+      }
+    }
+
     switch(data.type) {
       case "connect":
-        if(this.getUser(data.name) === undefined) {
-          this.respond({type:"name_result", result:"valid"}, response);
-          this.users.push(new User(data.name));
-        } else {
-          this.respond({type:"name_result", result:"invalid"}, response);
-        }
-
+        this.respond({type:"name_result", result:"invalid"}, response);
         break;
 
       case "create":
         var room = new Room(data.room_name, data.name);
-        var user = this.getUser(data.name);
-
-        if(user === undefined) {
-          this.respond({type:"disconnected"}, response);
-          break;
-        }
 
         room.addUser(user);
         this.rooms.push(room);
@@ -65,13 +66,6 @@ class Game {
         break;
 
       case "join":
-        var user = this.getUser(data.name);
-
-        if(user === undefined) {
-          this.respond({type:"disconnected"}, response);
-          break;
-        }
-
         var room = this.getRoom(data.room_name, data.room_host);
 
         if(room === undefined || room.users.length === 4) {
@@ -80,17 +74,41 @@ class Game {
         }
 
         room.addUser(user);
-        this.respond({type: "accepted"}, response);
-        break;
 
-      case "leave":
-        var user = this.getUser(data.name);
+        var currentPlayers = "";
 
-        if(user === undefined) {
-          this.respond({type:"disconnected"}, response);
-          break;
+        for(var i=0; i<room.users.length; i++) {
+            currentPlayers += room.users[i].name+",";
         }
 
+        this.respond({type: "accepted", players: currentPlayers}, response);
+        break;
+
+      case "begin":
+        if(user.inRoom && user.name === user.inRoom.host) {
+          user.inRoom.hasStarted = true;
+          this.respond({type: "accepted"}, response);
+        }
+
+        this.respond({type: "rejected"}, response);
+        break;
+
+      case "kick":
+        if(user.inRoom && user.name === user.inRoom.host) {
+          var target = user.inRoom.getUser(data.player_name);
+
+          if(target !== undefined) {
+            user.inRoom.disconnectUser(target);
+          }
+
+          this.respond({type: "accepted"}, response);
+        }
+
+        this.respond({type: "rejected"}, response);
+        break;
+
+
+      case "leave":
         if(user.inRoom !== false) {
           user.inRoom.disconnectUser(user);
           this.respond({type:"accepted"}, response);
@@ -101,48 +119,42 @@ class Game {
         break;
 
       case "ping":
-        var user = this.getUser(data.name);
+        user.lastTime = new Date().getTime();
 
-        if(user === undefined) {
-          this.respond({type:"disconnected"}, response);
+        if(user.inRoom) {
+          this.respond(user.pendingMessages, response);
+          user.pendingMessages = [];
         } else {
-          user.lastTime = new Date().getTime();
-
-          if(user.inRoom) {
-            this.respond(user.pendingMessages, response);
-            user.pendingMessages = [];
+          if(user.roomShutdown) {
+            this.respond({type:"room_shutdown"}, response);
+            user.roomShutdown = false;
           } else {
-            if(user.roomShutdown) {
-              this.respond({type:"room_shutdown"}, response);
-              user.roomShutdown = false;
-            } else {
-              var room_list = "";
+            var room_list = "";
 
-              if(this.rooms.length > 0) {
-                for(var i=0; i<this.rooms.length; i++) {
+            if(this.rooms.length > 0) {
+              for(var i=0; i<this.rooms.length; i++) {
+                if(!this.rooms[i].hasStarted)
                   room_list += `${this.rooms[i].name} ${this.rooms[i].host} (${this.rooms[i].users.length}/4),`;
-                }
               }
-
-              this.respond({type:"room_list", room_list:room_list}, response);
             }
+
+            this.respond({type:"room_list", room_list:room_list}, response);
           }
         }
         break;
 
       case "broadcast":
-        this.broadcastAll({type: "message", name: data.name, msg: data.msg});
-        this.respond({type:"confirm"}, response);
+        if(user.inRoom !== false) {
+          user.inRoom.broadcast(data.msg);
+          this.respond({type:"accepted"}, response);
+        }
+
+        this.respond({type:"rejected"}, response);
+
         break;
 
       default:
         this.respond({type:"error"}, response);
-    }
-  }
-
-  broadcastAll(msg) {
-    for(var i=0; i<this.users.length; i++) {
-      this.users[i].pendingMessages.push(msg);
     }
   }
 
