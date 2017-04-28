@@ -5,7 +5,7 @@ class User {
     this.pendingMessages = [];
     this.disconnected = false;
     this.inRoom = false;
-    this.roomShutdown = false;
+    this.removed = false;
   }
 }
 

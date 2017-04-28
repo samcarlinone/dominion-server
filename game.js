@@ -95,7 +95,7 @@ class Game {
           var target = user.inRoom.getUser(data.player_name);
 
           if(target !== undefined) {
-            user.inRoom.disconnectUser(target);
+            user.inRoom.disconnectUser(target, "Kicked From Lobby");
           }
 
           this.respond({type: "accepted"}, response);
@@ -122,9 +122,9 @@ class Game {
           this.respond(user.pendingMessages, response);
           user.pendingMessages = [];
         } else {
-          if(user.roomShutdown) {
-            this.respond({type:"room_shutdown"}, response);
-            user.roomShutdown = false;
+          if(user.removed) {
+            this.respond({type:"removed", reason:user.removed}, response);
+            user.removed = false;
           } else {
             var room_list = "";
 
