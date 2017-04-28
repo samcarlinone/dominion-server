@@ -24,7 +24,7 @@ class Room {
       this.shutdown();
   }
 
-  disconnectUser(index) {
+  disconnectUser(index, removed) {
     if(index.name !== undefined)
       index = this.getUserIndex(index.name);
 
@@ -39,6 +39,9 @@ class Room {
     this.users[index].pendingMessages = [];
     this.users[index].inRoom = false;
 
+    if(removed !== undefined)
+      this.users[index].removed = removed;
+
     this.users.splice(index, 1);
   }
 
@@ -47,7 +50,7 @@ class Room {
 
     for(var i=0; i<this.users.length; i++) {
       this.users[i].pendingMessages = [];
-      this.users[i].roomShutdown = true;
+      this.users[i].removed = "Room Shutdown";
       this.users[i].inRoom = false;
     }
 
