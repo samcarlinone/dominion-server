@@ -6,7 +6,7 @@ connect - name
 
 create - room_name
 
-join - room_name, room_host
+join - room_name, room_host (returns player list "p1,p2,...")
 
 kick - player_name
 
