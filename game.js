@@ -28,9 +28,6 @@ class Game {
 
     for(var i=0; i<this.users.length; i++) {
       if(this.users[i].disconnected || (!this.users[i].inRoom && (time-this.users[i].lastTime > 3000))) {
-        //Testing
-        this.broadcastAll({type: "message", name: "SYS", msg: "User: "+this.users[i].name+" left"});
-        //End Testing
         this.users.splice(i, 1);
         i--;
       }
