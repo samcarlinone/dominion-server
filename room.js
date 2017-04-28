@@ -5,6 +5,7 @@ class Room {
     this.host = host;
 
     this.hasShutdown = false;
+    this.hasStarted = false;
     this.hostLeft = false;
   }
 
@@ -55,6 +56,12 @@ class Room {
 
   addUser(user) {
     this.users.push(user);
+
+    this.broadcast({
+      type: "join",
+      user: user.name
+    });
+
     user.inRoom = this;
   }
 
