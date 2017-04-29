@@ -142,12 +142,19 @@ class Game {
 
       case "broadcast":
         if(user.inRoom !== false) {
-          user.inRoom.broadcast(data.msg);
-          this.respond({type:"accepted"}, response);
+          try {
+            var obj = JSON.parse(data.msg);
+            user.inRoom.broadcast(obj);
+            this.respond({type:"accepted"}, response);
+          } catch(e) {
+            console.log("Invalid broadcast json");
+            this.respond({type:"rejected"}, response);
+          }
+
+          break;
         }
 
         this.respond({type:"rejected"}, response);
-
         break;
 
       default:
